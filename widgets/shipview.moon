@@ -27,19 +27,30 @@ RoomButton = (room, parent) ->
 
 		events:
 			click: (button) =>
-				if button == 1 -- left
+				local fireWeapon, moveCrew
+				if button == "finger"
 					if parent.selection.type == "weapon"
-						weapon = parent.selection.weapon
+						fireWeaon = true
+					elseif parent.selection.type == "crew"
+						moveCrew = true
+				elseif button == 1
+					if parent.selection.type == "weapon"
+							fireWeapon = true
+				elseif button == 3
+					if parent.selection.type == "crew"
+						moveCrew = true
 
-						weapon.target = {
-							room: room,
-							ship: parent.ship
-						}
+				if fireWeapon
+					weapon = parent.selection.weapon
+
+					weapon.target = {
+						room: room,
+						ship: parent.ship
+					}
 
 					parent.selection.type = "none"
-				elseif button == 3 -- right
-					if parent.selection.type == "crew"
-						parent.selection.crew\pathfinding parent.ship.dijkstra, room, parent.ship.tiles
+				elseif moveCrew
+					parent.selection.crew\pathfinding parent.ship.dijkstra, room, parent.ship.tiles
 
 					parent.selection.type = "none"
 
@@ -118,7 +129,7 @@ DoorButton = (door, parent) ->
 				unless parent.controlable
 					return false
 
-				if button == 1
+				if button == 1 or button == "finger"
 					door.opened = not door.opened
 		theme:
 			drawButton: (renderer) =>
@@ -159,7 +170,7 @@ CrewButton = (crew, parent) ->
 				@y = (crew.position.y - 1) * 48 + 8 + (parent.height - gridHeight * 48) / 2
 
 			click: (button) =>
-				if button == 1 -- left
+				if button == 1 or button == "finger"
 					parent.selection.type = "crew"
 					parent.selection.crew = crew
 

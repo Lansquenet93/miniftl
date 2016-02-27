@@ -25,7 +25,7 @@ WeaponControl =
 		@clickable = true
 
 		@eventListeners.click = (button) =>
-			if button == 1 -- left
+			if button == 1 or button == "finger"
 				if @weapon.powered
 					@selection.type = "weapon"
 					@selection.weapon = @weapon

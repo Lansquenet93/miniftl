@@ -26,6 +26,12 @@ class
 		if @oxygen
 			n.oxygen = [x for x in *@oxygen]
 
+		if @options
+			n.options = [{
+				label: opt.label,
+				onClick: opt.onClick
+			} for opt in *@options]
+
 		-- Does not use power to work.
 		n.powerless = @powerless
 

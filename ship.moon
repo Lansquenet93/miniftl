@@ -90,8 +90,12 @@ class
 	addCrew: (crew, position) =>
 		@crew[#@crew+1] = crew
 		crew.position = position
-		@tiles[position.x][position.y].crewMember["ally"] = crew
-		if @tiles[position.x][position.y].posInDijkstra
+
+		tile = @tiles[position.x][position.y]
+
+		tile.crewMember["ally"] = crew
+
+		if tile.posInDijkstra
 			@dijkstra[@tiles[position.x][position.y].posInDijkstra].crewMember["ally"] = crew
 
 	addWeapon: (weapon) =>
@@ -102,16 +106,20 @@ class
 		for sys in *@systems
 			powerUsed += sys.power
 
+		local powered
+
 		if system.powerMethod
-			system\powerMethod self, powerUsed
+			powered = system\powerMethod self, powerUsed
 		else
 			if system.power < system.level and powerUsed < @reactorLevel
 				system.power += 1
 
-				true
+				powered = true
 
 		while system.power > system.health and system.power > 0
-			self\unpower system
+			powered = powered and not self\unpower system
+
+		powered
 
 	unpower: (system) =>
 		if system.unpowerMethod
@@ -150,16 +158,16 @@ class
 
 					x = room.position.x + i
 					y = room.position.y + j
-					tempTile = Tile x, y
-					tempTile.posInDijkstra = #@dijkstra+1
-					
-					room.tiles[#room.tiles+1] = tempTile
+
+					tile = Tile x, y
+					tile.posInDijkstra = #@dijkstra+1
+					room.tiles[#room.tiles+1] = tile
 
 					unless @tiles[x]
 						@tiles[x] = {}
 
-					@tiles[x][y] = tempTile
-					@dijkstra[#@dijkstra+1] = tempTile
+					@tiles[x][y] = tile
+					@dijkstra[#@dijkstra+1] = tile
 					@dijkstra[#@dijkstra].weight = math.huge
 					@dijkstra[#@dijkstra].goTo
 					@dijkstra[#@dijkstra].process = false
@@ -171,12 +179,12 @@ class
 						height = y
 					
 					unless x == room.position.x
-						@tiles[x][y]\addLink @tiles[x-1][y], nil, "left"
-						@dijkstra[@tiles[x][y].posInDijkstra]\addLink @dijkstra[@tiles[x-1][y].posInDijkstra], nil, "left"
+						tile\addLink @tiles[x-1][y], nil, "left"
+						@dijkstra[tile.posInDijkstra]\addLink @dijkstra[@tiles[x-1][y].posInDijkstra], nil, "left"
 					
 					unless y == room.position.y
-						@tiles[x][y]\addLink @tiles[x][y-1], nil, "up"
-						@dijkstra[@tiles[x][y].posInDijkstra]\addLink @dijkstra[@tiles[x][y-1].posInDijkstra], nil, "up"
+						tile\addLink @tiles[x][y-1], nil, "up"
+						@dijkstra[tile.posInDijkstra]\addLink @dijkstra[@tiles[x][y-1].posInDijkstra], nil, "up"
 
 		@tiles.width = width
 		@tiles.height = height
@@ -265,10 +273,10 @@ class
 		
 		for crewman in *@crew
 			oxygen = true
-			crewPos = crewman\roundPos !
+			crewPos = crewman\roundPos!
 			room = @\roomByPos crewPos
 			
-			positions = room\positionTiles !
+			positions = room\positionTiles!
 			fire = false
 			
 			for position in *positions

@@ -41,4 +41,23 @@ System = require "system"
 	lifeSupport: System "Life Support", {
 		oxygen: {1, 1.5, 3, 5, 7, 9},
 	},
+
+	doorsControl: System "Doors Control", {
+		options: {
+			{
+				label: "Open doors",
+				onClick: (ship) =>
+					if @power > 0
+						for door in *ship.doors
+							door.opened = true
+			},
+			{
+				label: "Close doors",
+				onClick: (ship) =>
+					if @power > 0
+						for door in *ship.doors
+							door.opened = false
+			}
+		}
+	},
 }

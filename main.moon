@@ -42,7 +42,7 @@ with player
 
 	\addCrew (CrewMan {}, "Leia"), {x: player.rooms[#player.rooms].position.x, y: player.rooms[#player.rooms].position.y}
 
-	.reactorLevel = 14
+	.reactorLevel = 18
 
 	\addWeapon Weapon
 		name: "Big Laser"
@@ -60,6 +60,11 @@ for room in *player.rooms
 
 	if room.system
 		print "", room.system
+
+for ship in *battle.ships
+	for system in *ship.systems
+		while ship\power system
+			true
 
 ShieldsIndicator = (ship, opts) ->
 	yui.Frame
@@ -163,7 +168,7 @@ updateTargetSelector = (battle) =>
 
 			events:
 				click: (button) =>
-					if button == 1
+					if button == 1 or button == "finger"
 						updateTargetView self, ship
 
 			yui.Label

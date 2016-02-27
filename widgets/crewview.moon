@@ -25,7 +25,7 @@ CrewView =
 		}
 
 		@eventListeners.click = (button) =>
-			if button == 1
+			if button == 1 or button == "finger"
 				print "Crewmember selected."
 				@selection.type = "crew"
 				@selection.crew = opts.crew
