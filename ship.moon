@@ -144,7 +144,7 @@ class
 		@dijkstra = {}
 
 		for room in *@rooms
-
+			room.tiles = {}
 			for j = 0, room.height-1
 				for i = 0, room.width-1
 
@@ -152,6 +152,8 @@ class
 					y = room.position.y + j
 					tempTile = Tile x, y
 					tempTile.posInDijkstra = #@dijkstra+1
+					
+					room.tiles[#room.tiles+1] = tempTile
 
 					unless @tiles[x]
 						@tiles[x] = {}

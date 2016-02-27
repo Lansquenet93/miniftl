@@ -1,19 +1,26 @@
 
 class
 	new: (species, name) =>
-		@maxHealth = species.health or 100
-		@health    = species.health or 100
-		@quickness = species.quickness or 0.6
+
 		@name = name or "unnamed person"
 		@team = "ally"
 		@boarding = false
+		@experience = {}
+
+		@maxHealth = species.health or 100
+		@health    = species.health or 100
+
+		@chargeTime = species.chargeTime or 120
+		@charge = @chargeTime
+		@damage = species.damage or 10
+
+		@quickness = species.quickness or 0.6
 		@position =
 			x: 0
 			y: 0
 		@move =
 			trajectory: {}
 			trajInd: 1
-		@experience = {}
 		for ability in *@@abilities
 			@experience[ability] = 0
 
@@ -138,51 +145,73 @@ class
 		}
 		return position
 
-	update: (dt, battle, fire, oxygen) =>
+	update: (dt, battle, room, fire) =>
 		
 		--print @name
 		
 		if fire
 			@health -= 5 * dt / 1000
 		
-		unless oxygen
+		if room.oxygen < 30
 			@health -= 5 * dt / 1000
 		
 		if @health < 0
 			@health = 0
 		
-		unless @move.trajectory
-			return
+		if @move.trajectory
+			if #@move.trajectory > 1
 		
-		--print #@move.trajectory
-		
-		unless #@move.trajectory > 1
-			return
-		
-		
-		dest = @move.trajectory[@move.trajInd+1].position
+				dest = @move.trajectory[@move.trajInd+1].position
+				dirx = dest.x - @move.trajectory[@move.trajInd].position.x
+				diry = dest.y - @move.trajectory[@move.trajInd].position.y
+	
+				if dirx != 0 and diry != 0
+					@position.x += (math.sqrt 2) * dirx * @quickness * dt / 1000
+					@position.y += (math.sqrt 2) * diry * @quickness * dt / 1000
+				else
+					@position.x += dirx * @quickness * dt / 1000
+					@position.y += diry * @quickness * dt / 1000
 
-		dirx = dest.x - @move.trajectory[@move.trajInd].position.x
-		diry = dest.y - @move.trajectory[@move.trajInd].position.y
+				if @position.x*dirx > dest.x*dirx
+					@position.x = dest.x
 
-		if dirx != 0 and diry != 0
-			@position.x += (math.sqrt 2) * dirx * @quickness * dt / 1000
-			@position.y += (math.sqrt 2) * diry * @quickness * dt / 1000
+				if @position.y*diry > dest.y*diry
+					@position.y = dest.y
+
+				if @position.x == dest.x and @position.y == dest.y
+					@move.trajInd +=1
+		
+				if @move.trajInd == #@move.trajectory
+					@move.trajInd = 1
+					@move.trajectory = {}
+
 		else
-			@position.x += dirx * @quickness * dt / 1000
-			@position.y += diry * @quickness * dt / 1000
+			@charge += dt
+			if @charge > @chargeTime
+				@charge = @chargeTime
 
-		if @position.x*dirx > dest.x*dirx
-			@position.x = dest.x
+			team = "ally"
+			if @team = "ally"
+				team = "enemy"
+			enemies = {}
+			for tile in *room.tiles
+				enemies[#enemies+1] = tile.crewMember[team]
 
-		if @position.y*diry > dest.y*diry
-			@position.y = dest.y
+			target = enemies[1]
+			
+			for enemy in *enemies
+				if enemy.position.x == @position.x and enemy.position.y == @position.y
+					 target = enemy
 
-		if @position.x == dest.x and @position.y == dest.y
-			@move.trajInd +=1
-		
-		if @move.trajInd == #@move.trajectory
-			@move.trajInd = 1
-			@move.trajectory = {}
-		
+			if target
+				if @charge == @chargeTime
+					enemy.health -= @damage
+					@charge = 0
+
+			else
+				if room.system
+					if room.system.health < room.system.level * 10
+						room.system.health += dt/1000
+					if room.system.health > room.system.level * 10
+						room.system.health = room.system.level * 10
 
